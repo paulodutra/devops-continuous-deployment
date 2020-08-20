@@ -29,6 +29,7 @@ RUN ln -s public html
 # expor a porta do PHP FPM
 EXPOSE 9000
 
+
 # entrypoint para deixar o php-fpm rodando
 ENTRYPOINT ["php-fpm"]
 
