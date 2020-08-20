@@ -1,0 +1,36 @@
+steps:
+
+#Obtem a imagem do docker-compose e executa o docker-compose especifico do cloud-build
+- id: "Rodando docker-compose"
+  name: 'gcr.io/$PROJECT_ID/docker-compose:1.25.5'
+  args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
+
+#Docker ps para verificar se os containers estão executando
+- id: "Rodando docker ps"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['ps']
+
+#Composer install (docker exec dentro do container app e depois composer install) 
+- id: "Instando dependências com o composer"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec', '-t', 'app', 'composer', 'install']
+
+#.env
+- id: "Copiando o .env"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec', '-t', 'app', 'cp', '.env.example', '.env']
+
+#Key generate (gerando a chave da app laravel)
+- id: "Gerando a chave da aplicação - key:generate"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec', '-t', 'app', 'php', '/var/www/artisan', 'key:generate']
+
+#Executando as migrações de banco de dados 
+- id: "Rodando as migrações de banco de dados"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec','-t','app','php','/var/www/artisan','migrate']  
+
+#Rodando testes (PHPUnit)
+- id: "Rodando Phpunit"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec', '-t', 'app', 'php', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']

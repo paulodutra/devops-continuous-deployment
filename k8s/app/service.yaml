@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: app-service
+spec: #iremos setar o service como nodePort para setar a porta 9000 do php-fpm
+    type: NodePort #também poderia ser utilizado um clusterIP, 
+    ports:
+        - protocol: TCP
+          port: 9000 #porta do service
+          nodePort: 30080 #porta do node ou seja independente da instancia do pod que você cair bateu na porta 30080, será redirecionado para a 9000 (não necessitando de serviço de DNS)
+    selector:
+        app: app #irá obter todos os pods(containers com o nome app)

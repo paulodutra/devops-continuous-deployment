@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: app
+
+spec:
+    selector: #irá selecionar todos os pods(container com a tag app)
+        matchLabels: 
+            app: app
+    template:
+        metadata:
+            labels:
+                app: app
+        #especificação dos pods
+        spec:
+            containers: 
+            - name: app
+              image: img-app-deployment # a imagem irá variar a cada deploy e por isso iremos apelidar a imagem com esse nome 
+              ports:
+              - containerPort: 80
+              #configura uma ou mais váriaveis de ambiente (especificando cada uma)
+              env: 
+              - name: DB_PASSWORD #nome da variavel do .env do laravel
+                valueFrom: 
+                    secretKeyRef: 
+                        name: mysql-pass #nome da nossa secret
+                        key: password #key da nossa secret criada no GCP
+
+            
+              #seta as variaveis de ambiente (configura varias variaveis de ambiente vindo de um lugar)
+              envFrom: #utilizar as variaveis de ambiente do confimap
+              - configMapRef: 
+                    name: app-conf
+              #montagem do volume
+              volumeMounts:
+              - name: app-conf
+                mountPath: /var/www/.env #local de onde o arquivo será montado
+                subPath: .env #substitui o arquivo caso ele exista no mountPath
+
+
+            #definição do volume para utilizar as variaveis de ambiente do configmap
+            volumes:
+            - name: app-conf
+              configMap:
+                name: app-conf #nome do configmap
+                items:
+                    - key: env
+                      path: .env #caminho e nome do arquivo a ser criado com o conteudo do confimap

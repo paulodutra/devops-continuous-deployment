@@ -1,0 +1,64 @@
+version: '3'
+
+services: 
+    app:
+        build: . #irá buildar apartir do dockerfile que esta na raiz do laravel
+        container_name: app
+        #entrypoint: dockerize -template ./.docker/app/.env:.env -wait tcp://db:3306 -timeout 40s ./.docker/entrypoint.sh #quando estamos trabalhando com dockerize no entrypoint temos que informar o comando que ele irá executar depois que o serviço estar no ar
+        # environment: 
+        #     - DB_HOST=db
+        #     - DB_DATABASE=laravel
+        #     - DB_USERNAME=root
+        #     - DB_PASSWORD=root
+        volumes: 
+            - .:/var/www
+        networks:
+            - app-networks # colocando o serviço app na rede app-networks declarada abaixo
+        depends_on: 
+            - db
+            - redis
+    nginx:
+        build: .docker/nginx #aponta para a pasta que possui o dockerfile com o nome padrão
+        container_name: nginx
+        restart: always #reinicia caso o container caia ou caso o processo do nginx falhe
+        tty: true #habilita o terminal interativo (acessar o container via terminal)
+        ports: 
+            - "8000:80"
+        volumes: 
+            - .:/var/www
+        networks:
+            - app-networks
+        depends_on:
+            - app
+    db:
+        #image: mysql:5.7
+        build: .docker/mysql
+        build: .docker/mysql
+        command: --innodb-use-native-aio=0 #evita problemas em relação a tipo de dados e tipos de arquivos
+        container_name: db
+        restart: always
+        tty: true
+        ports: 
+            - "3336:3306"
+        volumes: 
+            - ./.docker/dbdata:/var/lib/mysql #cria uma volume compartilhado para que ao apagar os arquivos os mesmos não sejam apagados
+        environment: #variaveis de ambiente padrão para configurar o usuário root e criar um banco default
+            - MYSQL_DATABASE=laravel
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_USER=root
+        networks: 
+            - app-networks
+        # healthcheck: #verifica se o serviço esta no ar (versão 2.3 docker-compose)
+        #     test: ["CMD-SHELL", 'mysql -uroot --database=laravel --password=root --execute="SELECT count(table_name) > 0 FROM information_schema.tables;" --skip-column-names -B']
+        #     interval: 10s #caso não tenha, espera um intervalo de 10 segundos para testar novamente
+        #     timeout: 10s # a cada 10 segundos da um timeout de 10s para rodar
+        #     retries: 4 # tenta até 4 vezes
+    redis:
+        image: redis:alpine #obtem uma imagem do dockerhub diretamente do docker-compose.yml
+        expose:
+            - 6379 #expoe a porta do container
+        networks:
+            - app-networks
+networks:  #cria uma rede com o nome de app-newtworks que utiliza o driver bridge
+    app-networks:
+        driver: bridge

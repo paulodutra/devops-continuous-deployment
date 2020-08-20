@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: mysql-service
+spec:
+    ports:
+        - port: 3306
+    selector:
+        app: mysql-server #igual esta no matchLabels do deployment.yaml
+        tier: db
+    clusterIP: None # não permitindo que seja acessado fora do cluster e também não será acessado pelo ip interno somente por resolução de nome (mysql-service)
+    #ajuda na parte de service discovery porque ao invés de ter que gravar os ips internos com os pods que estão rodando o mysql irá ser usado apenas o nome e o kubernetes já resolve
+

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mysql-pv-claim
+spec:
+    accessModes: #define se é modo write ou read
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 20Gi #solicita a criação de um volume de 20Gi
