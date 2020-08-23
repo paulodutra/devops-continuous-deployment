@@ -53,6 +53,18 @@ steps:
   args:
     - '-c'
     - | # find and replace file deployment 
-      sed 's#img-app-deployment#gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA#g' .k8s/app/deployment.yaml > k8s/deployment-new.yaml;
+      sed 's#img-app-deployment#gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA#g' k8s/app/deployment.yaml > k8s/deployment-new.yaml;
       cat k8s/app/deployment-new.yaml;
+
+#alteração da imagem no kubernetes
+- id: 'Deploying k8s'
+  name: 'gcr.io/cloud-builders/kubectl'
+  args:
+    - 'apply'
+    - '-f'
+    - 'k8s/app/deployment-new.yaml'
+  env: #irá utilizar duas variáveis de ambiente
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a' #região escolhida no cluster k8s
+  - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-docker-laravel-cd' #nome do cluster
+
 
