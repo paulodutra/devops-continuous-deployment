@@ -38,10 +38,21 @@ steps:
 # Realizando o build da imagem de produção apartir do Dockerfile.prod
 - id: "Building image from Dockerfile.prod"
   name: 'gcr.io/cloud-builders/docker' # $SHORT_SHA: hash gerado a cada deploy
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA', 'f', 'Dockerfile.prod', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA', '-f', 'Dockerfile.prod', '.']
 
 # Realiza o push da imagem para o image registry
 - id: "Pushing image"
   name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA']
+
+# Ajuste e substituição do deployment k8s
+
+- id: "Ajusting deployment file - k8s"
+  name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: '/bin/sh' #permite rodar comandos do shell script
+  args:
+    - '-c'
+    - | # find and replace file deployment 
+      sed 's#img-app-deployment#gcr.io/$PROJECT_ID/app-laravel:$SHORT_SHA#g' .k8s/app/deployment.yaml > k8s/deployment-new.yaml;
+      cat k8s/app/deployment-new.yaml;
 
