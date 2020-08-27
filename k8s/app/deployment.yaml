@@ -16,7 +16,7 @@ spec:
             containers: 
             - name: app
               image: img-app-deployment # a imagem irá variar a cada deploy e por isso iremos apelidar a imagem com esse nome 
-              command: ["/bin/sh", "-c", "ln -s /var/www /usr/share/nginx; php-fpm"] #cria o link simbolico e depois rota o php-fpm
+              command: ["/bin/sh", "-c", "ln -s /var/www /usr/share/nginx; /var/www/k8s/entrypoint.sh; php-fpm"] #cria o link simbolico, roda o entrypoint de configuração laravel e depois rota o php-fpm
               ports:
               - containerPort: 80
               #configura uma ou mais váriaveis de ambiente (especificando cada uma)
